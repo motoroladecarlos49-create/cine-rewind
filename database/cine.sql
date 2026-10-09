@@ -162,6 +162,19 @@ CREATE TABLE `comentarios` (
   FOREIGN KEY (`id_pelicula`) REFERENCES `peliculas`(`id_pelicula`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+
+ALTER TABLE `ventas`
+  ADD COLUMN `codigo_reserva` VARCHAR(255) NULL UNIQUE AFTER `id_usuario`;
+
+ALTER TABLE `ventas`
+  ADD COLUMN `cantidad_entradas` INT(11) NULL UNIQUE AFTER `codigo_reserva`;
+
+ALTER TABLE `ventas`
+  ADD COLUMN `estado` ENUM('pendiente','confirmada','cancelada') NOT NULL DEFAULT 'pendiente' AFTER `monto_total`;
+
+ALTER TABLE `peliculas` ADD INDEX `idx_titulo` (`titulo`);
+ALTER TABLE `peliculas` ADD INDEX `idx_genero` (`genero`);
+ALTER TABLE `peliculas` ADD INDEX `idx_anio_estreno` (`anio_estreno`);
 -- --------------------------------------------------------
 
 --
