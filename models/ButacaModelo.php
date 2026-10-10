@@ -26,6 +26,19 @@ class ButacaModelo {
     }
     
     /**
+     * Obtiene TODAS las butacas de una función con su estado
+     * (para mostrar el mapa completo)
+     */
+    public static function obtenerTodasPorFuncion($id_funcion) {
+        $db = ConexionBD::getInstancia()->getConexion();
+        $stmt = $db->prepare("SELECT * FROM butacas 
+                              WHERE id_funcion = ? AND activo = 1 
+                              ORDER BY id_butaca ASC");
+        $stmt->execute([$id_funcion]);
+        return $stmt->fetchAll();
+    }
+    
+    /**
      * Cuenta las butacas disponibles de una función
      */
     public static function contarDisponibles($id_funcion) {
@@ -74,30 +87,17 @@ class ButacaModelo {
         $stmt->execute([$id]);
         return $stmt->fetch();
     }
+    
+    /**
+     * Verifica que una butaca pertenece a una función y está disponible
+     */
+    public static function validarDisponibilidad($id_butaca, $id_funcion) {
+        $db = ConexionBD::getInstancia()->getConexion();
+        $stmt = $db->prepare("SELECT * FROM butacas 
+                              WHERE id_butaca = ? AND id_funcion = ? 
+                              AND estado = 'disponible' AND activo = 1");
+        $stmt->execute([$id_butaca, $id_funcion]);
+        return $stmt->fetch();
+    }
 }
-/**
- * Obtiene TODAS las butacas de una función con su estado
- * (para mostrar el mapa completo: disponible/reservada/ocupada)
- */
-public static function obtenerTodasPorFuncion($id_funcion) {
-    $db = ConexionBD::getInstancia()->getConexion();
-    $stmt = $db->prepare("SELECT * FROM butacas 
-                          WHERE id_funcion = ? AND activo = 1 
-                          ORDER BY id_butaca ASC");
-    $stmt->execute([$id_funcion]);
-    return $stmt->fetchAll();
-}
-
-/**
- * Verifica que una butaca pertenece a una función y está disponible
- */
-public static function validarDisponibilidad($id_butaca, $id_funcion) {
-    $db = ConexionBD::getInstancia()->getConexion();
-    $stmt = $db->prepare("SELECT * FROM butacas 
-                          WHERE id_butaca = ? AND id_funcion = ? 
-                          AND estado = 'disponible' AND activo = 1");
-    $stmt->execute([$id_butaca, $id_funcion]);
-    return $stmt->fetch();
-}
-
 ?>
