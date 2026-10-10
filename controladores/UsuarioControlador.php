@@ -48,6 +48,91 @@ class UsuarioControlador {
         require_once __DIR__ . '/../views/usuario/decada.php';
     }
     
+    /**
+     * Búsqueda con filtros
+     */
+    public function buscar() {
+        AuthControlador::verificarAutenticacion();
+
+        $filtros = [
+            'q'      => sanitizar($_GET['q'] ?? ''),
+            'genero' => sanitizar($_GET['genero'] ?? ''),
+            'anio'   => intval($_GET['anio'] ?? 0),
+            'decada' => intval($_GET['decada'] ?? 0)
+        ];
+
+        $peliculas = PeliculaModelo::buscarConFiltros($filtros);
+        $generos = PeliculaModelo::obtenerGeneros();
+        $mensaje = getMensaje();
+
+        require_once __DIR__ . '/../views/usuario/buscar.php';
+    }
+    
+    /**
+     * Detalle de película con comentarios
+     */
+    public function detallePelicula() {
+        AuthControlador::verificarAutenticacion();
+
+        $id = intval($_GET['id'] ?? 0);
+        if ($id <= 0) {
+            redirigir('cartelera');
+        }
+
+        $pelicula = PeliculaModelo::obtenerPorId($id);
+        if (!$pelicula) {
+            setMensaje('error', 'Película no encontrada.');
+            redirigir('cartelera');
+        }
+
+        $comentarios = ComentarioModelo::obtenerPorPelicula($id);
+        $promedio = ComentarioModelo::obtenerPromedio($id);
+        $yaComento = ComentarioModelo::yaComento($_SESSION['usuario_id'], $id);
+        $mensaje = getMensaje();
+
+        require_once __DIR__ . '/../views/usuario/detalle.php';
+    }
+    
+    /**
+     * Enviar comentario
+     */
+    public function comentar() {
+        AuthControlador::verificarAutenticacion();
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirigir('cartelera');
+        }
+
+        $id_pelicula = intval($_POST['id_pelicula'] ?? 0);
+        $comentario  = sanitizar($_POST['comentario'] ?? '');
+        $puntaje     = intval($_POST['puntaje'] ?? 0);
+
+        if ($id_pelicula <= 0 || empty($comentario) || $puntaje < 1 || $puntaje > 5) {
+            setMensaje('error', 'Comentario inválido. Puntaje entre 1 y 5.');
+            redirigir('detalle&id=' . $id_pelicula);
+        }
+
+        if (ComentarioModelo::yaComento($_SESSION['usuario_id'], $id_pelicula)) {
+            setMensaje('error', 'Ya comentaste esta película.');
+            redirigir('detalle&id=' . $id_pelicula);
+        }
+
+        $ok = ComentarioModelo::crear(
+            $_SESSION['usuario_id'],
+            $id_pelicula,
+            $comentario,
+            $puntaje
+        );
+
+        if ($ok) {
+            setMensaje('success', '¡Comentario enviado! Será revisado por un administrador.');
+        } else {
+            setMensaje('error', 'Error al enviar el comentario.');
+        }
+
+        redirigir('detalle&id=' . $id_pelicula);
+    }
+    
     public function reservar() {
         AuthControlador::verificarAutenticacion();
         
@@ -70,58 +155,62 @@ class UsuarioControlador {
         require_once __DIR__ . '/../views/usuario/reservar.php';
     }
     
+    /**
+     * Selección de butacas (ahora muestra TODAS con su estado)
+     */
     public function entrada() {
         AuthControlador::verificarAutenticacion();
-        
-        $id_funcion = isset($_GET['funcion']) ? intval($_GET['funcion']) : 0;
-        
+
+        $id_funcion = intval($_GET['funcion'] ?? 0);
         if ($id_funcion <= 0) {
             setMensaje('error', 'Función no especificada.');
             redirigir('cartelera');
         }
-        
+
         $funcion = FuncionModelo::obtenerPorId($id_funcion);
         if (!$funcion) {
             setMensaje('error', 'Función no encontrada.');
             redirigir('cartelera');
         }
-        
-        $butacas_disponibles = ButacaModelo::obtenerDisponibles($id_funcion);
+
+        $butacas = ButacaModelo::obtenerTodasPorFuncion($id_funcion);
         $mensaje = getMensaje();
-        
+
         require_once __DIR__ . '/../views/usuario/entrada.php';
     }
     
+    /**
+     * Procesar compra multi-butaca
+     */
     public function procesarCompra() {
         AuthControlador::verificarAutenticacion();
-        
+
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             redirigir('cartelera');
         }
-        
+
         $id_funcion = intval($_POST['id_funcion'] ?? 0);
-        $id_butaca = intval($_POST['id_butaca'] ?? 0);
-        
-        if ($id_funcion <= 0 || $id_butaca <= 0) {
-            setMensaje('error', 'Datos de compra incompletos.');
-            redirigir('cartelera');
+        $butacas = $_POST['butacas'] ?? [];
+
+        if ($id_funcion <= 0 || empty($butacas)) {
+            setMensaje('error', 'Debes seleccionar al menos una butaca.');
+            redirigir('entrada&funcion=' . $id_funcion);
         }
-        
+
+        $butacas = array_map('intval', $butacas);
+
         try {
-            $id_venta = ReservaModelo::crear(
+            $resultado = ReservaModelo::crear(
                 $_SESSION['usuario_id'],
                 $id_funcion,
-                $id_butaca
+                $butacas
             );
-            
-            if ($id_venta) {
-                ReservaModelo::confirmar($id_venta);
-                setMensaje('success', '¡Compra realizada con éxito! Revisa tu historial.');
-                redirigir('historial');
-            } else {
-                setMensaje('error', 'Error al procesar la compra.');
-                redirigir('entrada&funcion=' . $id_funcion);
-            }
+
+            setMensaje('success', 
+                '¡Compra realizada! Código: ' . $resultado['codigo'] . 
+                ' — ' . count($butacas) . ' entrada(s).');
+            redirigir('historial');
+
         } catch (Exception $e) {
             setMensaje('error', $e->getMessage());
             redirigir('entrada&funcion=' . $id_funcion);

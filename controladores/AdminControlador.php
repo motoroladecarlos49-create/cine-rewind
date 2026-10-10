@@ -435,40 +435,42 @@ class AdminControlador {
     
     public function moderarComentarios() {
         AuthControlador::verificarAdmin();
-        
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
-            $accion = isset($_POST['accion']) ? $_POST['accion'] : '';
-            
-            if ($id <= 0 || !in_array($accion, ['aprobar', 'rechazar', 'eliminar'])) {
+            $id = intval($_POST['id'] ?? 0);
+            $accion = $_POST['accion'] ?? '';
+
+            if ($id <= 0 || !in_array($accion, ['aprobar','rechazar','eliminar'])) {
                 setMensaje('error', 'Acción no válida.');
                 redirigir('admin_comentarios');
             }
-            
+
             $resultado = false;
-            if ($accion === 'aprobar') {
-                $resultado = ComentarioModelo::aprobar($id);
-                $mensaje = 'Comentario aprobado.';
-            } elseif ($accion === 'rechazar') {
-                $resultado = ComentarioModelo::rechazar($id);
-                $mensaje = 'Comentario rechazado.';
-            } elseif ($accion === 'eliminar') {
-                $resultado = ComentarioModelo::eliminar($id);
-                $mensaje = 'Comentario eliminado.';
+            $mensaje = '';
+            switch ($accion) {
+                case 'aprobar':
+                    $resultado = ComentarioModelo::aprobar($id);
+                    $mensaje = 'Comentario aprobado.';
+                    break;
+                case 'rechazar':
+                    $resultado = ComentarioModelo::rechazar($id);
+                    $mensaje = 'Comentario rechazado.';
+                    break;
+                case 'eliminar':
+                    $resultado = ComentarioModelo::eliminar($id);
+                    $mensaje = 'Comentario eliminado.';
+                    break;
             }
-            
-            if ($resultado) {
-                setMensaje('success', $mensaje);
-            } else {
-                setMensaje('error', 'Error al procesar el comentario.');
-            }
-            
+
+            setMensaje($resultado ? 'success' : 'error', 
+                    $resultado ? $mensaje : 'Error al procesar.');
             redirigir('admin_comentarios');
         }
-        
-        $comentarios_pendientes = ComentarioModelo::obtenerPendientes();
+
+        $filtro = $_GET['estado'] ?? null;
+        $comentarios = ComentarioModelo::obtenerTodos($filtro);
         $mensaje = getMensaje();
-        
+
         require_once __DIR__ . '/../views/admin/comentarios/moderar.php';
     }
 }

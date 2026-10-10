@@ -82,6 +82,55 @@ class PeliculaModelo {
     }
     
     /**
+     * Búsqueda avanzada con filtros combinables
+     */
+    public static function buscarConFiltros($filtros = []) {
+        $db = ConexionBD::getInstancia()->getConexion();
+
+        $sql = "SELECT * FROM peliculas WHERE activo = 1";
+        $params = [];
+
+        if (!empty($filtros['q'])) {
+            $sql .= " AND (titulo LIKE ? OR descripcion LIKE ?)";
+            $params[] = '%' . $filtros['q'] . '%';
+            $params[] = '%' . $filtros['q'] . '%';
+        }
+
+        if (!empty($filtros['genero'])) {
+            $sql .= " AND genero LIKE ?";
+            $params[] = '%' . $filtros['genero'] . '%';
+        }
+
+        if (!empty($filtros['anio'])) {
+            $sql .= " AND anio_estreno = ?";
+            $params[] = intval($filtros['anio']);
+        }
+
+        if (!empty($filtros['decada'])) {
+            $inicio = intval($filtros['decada']);
+            $sql .= " AND anio_estreno BETWEEN ? AND ?";
+            $params[] = $inicio;
+            $params[] = $inicio + 9;
+        }
+
+        $sql .= " ORDER BY titulo ASC";
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+    
+    /**
+     * Obtiene los géneros únicos para el filtro
+     */
+    public static function obtenerGeneros() {
+        $db = ConexionBD::getInstancia()->getConexion();
+        $stmt = $db->query("SELECT DISTINCT genero FROM peliculas 
+                            WHERE activo = 1 ORDER BY genero");
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+    
+    /**
      * Crea una nueva película
      */
     public static function crear($datos) {
@@ -146,54 +195,6 @@ class PeliculaModelo {
         $stmt = $db->query("SELECT COUNT(*) as total FROM peliculas WHERE activo = 1");
         $resultado = $stmt->fetch();
         return $resultado['total'];
-    }
-    /**
-    * Búsqueda avanzada con filtros combinables
-    */
-    public static function buscarConFiltros($filtros = []) {
-        $db = ConexionBD::getInstancia()->getConexion();
-
-        $sql = "SELECT * FROM peliculas WHERE activo = 1";
-        $params = [];
-
-        if (!empty($filtros['q'])) {
-            $sql .= " AND (titulo LIKE ? OR descripcion LIKE ?)";
-            $params[] = '%' . $filtros['q'] . '%';
-            $params[] = '%' . $filtros['q'] . '%';
-        }
-
-        if (!empty($filtros['genero'])) {
-            $sql .= " AND genero LIKE ?";
-            $params[] = '%' . $filtros['genero'] . '%';
-        }
-
-        if (!empty($filtros['anio'])) {
-            $sql .= " AND anio_estreno = ?";
-            $params[] = intval($filtros['anio']);
-        }
-
-        if (!empty($filtros['decada'])) {
-            $inicio = intval($filtros['decada']);
-            $sql .= " AND anio_estreno BETWEEN ? AND ?";
-            $params[] = $inicio;
-            $params[] = $inicio + 9;
-        }
-
-        $sql .= " ORDER BY titulo ASC";
-
-        $stmt = $db->prepare($sql);
-        $stmt->execute($params);
-        return $stmt->fetchAll();
-    }
-
-    /**
-    * Obtiene los géneros únicos para el filtro
-    */
-    public static function obtenerGeneros() {
-        $db = ConexionBD::getInstancia()->getConexion();
-        $stmt = $db->query("SELECT DISTINCT genero FROM peliculas 
-                            WHERE activo = 1 ORDER BY genero");
-    return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 }
 ?>

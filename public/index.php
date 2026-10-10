@@ -232,6 +232,20 @@ switch ($ruta) {
         $controlador = new AdminControlador();
         $controlador->moderarComentarios();
         break;
+        case 'buscar':
+        require_once __DIR__ . '/../controladores/UsuarioControlador.php';
+        (new UsuarioControlador())->buscar();
+        break;
+
+    case 'detalle':
+        require_once __DIR__ . '/../controladores/UsuarioControlador.php';
+        (new UsuarioControlador())->detallePelicula();
+        break;
+
+    case 'comentar':
+        require_once __DIR__ . '/../controladores/UsuarioControlador.php';
+        (new UsuarioControlador())->comentar();
+        break;
         
     // ==================== RUTA POR DEFECTO (404) ====================
     default:
