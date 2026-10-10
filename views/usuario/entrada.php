@@ -8,27 +8,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
 </head>
 <body>
-    <header>
-        <nav class="navbar">
-            <h1><?php echo SITE_NAME; ?></h1>
-            <ul>
-                <li><a href="<?php echo BASE_URL; ?>?ruta=home">Inicio</a></li>
-                <li><a href="<?php echo BASE_URL; ?>?ruta=nosotros">Nosotros</a></li>
-                <li><a href="<?php echo BASE_URL; ?>?ruta=cartelera">Cartelera</a></li>
-                <li><a href="<?php echo BASE_URL; ?>?ruta=buscar">Buscar</a></li>
-                <li><a href="<?php echo BASE_URL; ?>?ruta=contacto">Contacto</a></li>
-                <li><a href="<?php echo BASE_URL; ?>?ruta=reservar">Reservar entradas</a></li>
-                <?php if (esAdmin()): ?>
-                    <li><a href="<?php echo BASE_URL; ?>?ruta=admin">Panel Admin</a></li>
-                <?php endif; ?>
-            </ul>
-            <div class="button">
-                <a href="<?php echo BASE_URL; ?>?ruta=perfil">
-                    <p><?php echo $_SESSION['usuario_nombre']; ?></p>
-                </a>
-            </div>
-        </nav>
-    </header>
+	<?php require_once __DIR__ . '/../shared/navbar.php'; ?>
 
     <div class="entrada-container">
         <h1>Seleccionar Butacas</h1>

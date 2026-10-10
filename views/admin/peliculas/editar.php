@@ -8,24 +8,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
 </head>
 <body>
-    <header>
-        <nav class="navbar">
-            <h1><?php echo SITE_NAME; ?></h1>
-            <ul>
-                <li><a href="<?php echo BASE_URL; ?>?ruta=admin">Dashboard</a></li>
-                <li><a href="<?php echo BASE_URL; ?>?ruta=admin_peliculas">Películas</a></li>
-                <li><a href="<?php echo BASE_URL; ?>?ruta=admin_funciones">Funciones</a></li>
-                <li><a href="<?php echo BASE_URL; ?>?ruta=admin_salas">Salas</a></li>
-                <li><a href="<?php echo BASE_URL; ?>?ruta=admin_usuarios">Usuarios</a></li>
-                <li><a href="<?php echo BASE_URL; ?>?ruta=admin_comentarios">Comentarios</a></li>
-                <li><a href="<?php echo BASE_URL; ?>?ruta=home">Ver sitio</a></li>
-            </ul>
-            <div class="button">
-                <a href="<?php echo BASE_URL; ?>?ruta=logout">
-                    <p>Cerrar Sesión</p>
-                </a>
-            </div>
-        </nav>
+    	<?php require_once __DIR__ . '/../../shared/navbar.php'; ?>
     </header>
 
     <div class="admin-form">
