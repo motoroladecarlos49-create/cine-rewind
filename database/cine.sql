@@ -162,6 +162,26 @@ CREATE TABLE `comentarios` (
   FOREIGN KEY (`id_pelicula`) REFERENCES `peliculas`(`id_pelicula`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- Actualización de la base de datos para Retro Rewind
+USE `cine_rewind`;
+
+-- Código único de reserva en ventas
+ALTER TABLE `ventas`
+  ADD COLUMN `codigo_reserva` VARCHAR(20) NOT NULL UNIQUE AFTER `id_usuario`;
+
+-- Cantidad de entradas por venta
+ALTER TABLE `ventas`
+  ADD COLUMN `cantidad_entradas` INT(11) NOT NULL DEFAULT 1 AFTER `codigo_reserva`;
+
+-- Estado de la venta
+ALTER TABLE `ventas`
+  ADD COLUMN `estado` ENUM('pendiente','confirmada','cancelada') NOT NULL DEFAULT 'pendiente' AFTER `monto_total`;
+
+-- Índices para búsquedas
+ALTER TABLE `peliculas` ADD INDEX `idx_titulo` (`titulo`);
+ALTER TABLE `peliculas` ADD INDEX `idx_genero` (`genero`);
+ALTER TABLE `peliculas` ADD INDEX `idx_anio` (`anio_estreno`);
+
 -- --------------------------------------------------------
 
 --
@@ -222,3 +242,4 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
