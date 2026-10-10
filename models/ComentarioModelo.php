@@ -73,5 +73,51 @@ class ComentarioModelo {
         $stmt = $db->prepare("UPDATE comentarios SET activo = 0 WHERE id_comentario = ?");
         return $stmt->execute([$id_comentario]);
     }
+    /**
+    * Verifica si el usuario ya comentó esta película
+    */
+    public static function yaComento($id_usuario, $id_pelicula) {
+        $db = ConexionBD::getInstancia()->getConexion();
+        $stmt = $db->prepare("SELECT id_comentario FROM comentarios 
+                            WHERE id_usuario = ? AND id_pelicula = ? 
+                            AND activo = 1");
+        $stmt->execute([$id_usuario, $id_pelicula]);
+        return $stmt->fetch() !== false;
+    }
+
+    /**
+    * Obtiene TODOS los comentarios (para admin, con filtro de estado)
+    */
+    public static function obtenerTodos($estado = null) {
+        $db = ConexionBD::getInstancia()->getConexion();
+        $sql = "SELECT c.*, u.nombre as usuario_nombre, p.titulo as pelicula_titulo
+                FROM comentarios c
+                JOIN usuario u ON c.id_usuario = u.id_usuario
+                JOIN peliculas p ON c.id_pelicula = p.id_pelicula
+                WHERE c.activo = 1";
+        $params = [];
+
+        if ($estado && in_array($estado, ['pendiente','aprobado','rechazado'])) {
+            $sql .= " AND c.estado = ?";
+            $params[] = $estado;
+        }
+
+        $sql .= " ORDER BY c.fecha DESC";
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
+    /**
+    * Obtiene el promedio de puntaje de una película
+    */
+    public static function obtenerPromedio($id_pelicula) {
+        $db = ConexionBD::getInstancia()->getConexion();
+        $stmt = $db->prepare("SELECT AVG(puntaje) as promedio, COUNT(*) as total 
+                            FROM comentarios 
+                            WHERE id_pelicula = ? AND estado = 'aprobado' AND activo = 1");
+        $stmt->execute([$id_pelicula]);
+        return $stmt->fetch();
+    }
 }
 ?>

@@ -180,8 +180,7 @@ ALTER TABLE `ventas`
 -- Índices para búsquedas
 ALTER TABLE `peliculas` ADD INDEX `idx_titulo` (`titulo`);
 ALTER TABLE `peliculas` ADD INDEX `idx_genero` (`genero`);
-ALTER TABLE `peliculas` ADD INDEX `idx_anio` (`anio_estreno`);
-
+ALTER TABLE `peliculas` ADD INDEX `idx_anio_estreno` (`anio_estreno`);
 -- --------------------------------------------------------
 
 --
@@ -242,4 +241,3 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-
