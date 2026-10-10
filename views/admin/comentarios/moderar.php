@@ -2,7 +2,6 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Moderar Comentarios - <?php echo SITE_NAME; ?></title>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>css/estilos.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
@@ -29,7 +28,7 @@
     </header>
 
     <div class="admin-section">
-        <h1> Moderar Comentarios</h1>
+        <h1>Moderar Comentarios</h1>
 
         <?php if (isset($mensaje)): ?>
             <div class="mensaje <?php echo $mensaje['tipo']; ?>">
@@ -37,8 +36,19 @@
             </div>
         <?php endif; ?>
 
-        <?php if (empty($comentarios_pendientes)): ?>
-            <p class="no-comentarios"> No hay comentarios pendientes de moderación.</p>
+        <div class="filtros-admin">
+            <a href="?ruta=admin_comentarios" 
+               class="btn-g <?php echo !isset($_GET['estado']) ? 'active' : ''; ?>">Todos</a>
+            <a href="?ruta=admin_comentarios&estado=pendiente" 
+               class="btn-g <?php echo ($_GET['estado'] ?? '') === 'pendiente' ? 'active' : ''; ?>">Pendientes</a>
+            <a href="?ruta=admin_comentarios&estado=aprobado" 
+               class="btn-g <?php echo ($_GET['estado'] ?? '') === 'aprobado' ? 'active' : ''; ?>">Aprobados</a>
+            <a href="?ruta=admin_comentarios&estado=rechazado" 
+               class="btn-g <?php echo ($_GET['estado'] ?? '') === 'rechazado' ? 'active' : ''; ?>">Rechazados</a>
+        </div>
+
+        <?php if (empty($comentarios)): ?>
+            <p class="no-comentarios">No hay comentarios.</p>
         <?php else: ?>
             <table>
                 <thead>
@@ -47,33 +57,40 @@
                         <th>Película</th>
                         <th>Puntaje</th>
                         <th>Comentario</th>
+                        <th>Estado</th>
                         <th>Fecha</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($comentarios_pendientes as $comentario): ?>
+                    <?php foreach ($comentarios as $c): ?>
                         <tr>
-                            <td><?php echo $comentario['usuario_nombre']; ?></td>
-                            <td><?php echo $comentario['pelicula_titulo']; ?></td>
-                            <td>⭐ <?php echo $comentario['puntaje']; ?>/5</td>
-                            <td><?php echo $comentario['comentario']; ?></td>
-                            <td><?php echo formatearFecha($comentario['fecha']); ?></td>
+                            <td><?php echo htmlspecialchars($c['usuario_nombre']); ?></td>
+                            <td><?php echo htmlspecialchars($c['pelicula_titulo']); ?></td>
+                            <td><?php echo str_repeat('⭐', $c['puntaje']); ?></td>
+                            <td><?php echo htmlspecialchars(truncarTexto($c['comentario'], 80)); ?></td>
+                            <td><span class="badge badge-<?php echo $c['estado']; ?>">
+                                <?php echo $c['estado']; ?>
+                            </span></td>
+                            <td><?php echo formatearFecha($c['fecha']); ?></td>
                             <td>
-                                <form action="<?php echo BASE_URL; ?>?ruta=admin_comentarios" method="POST" style="display:inline;">
-                                    <input type="hidden" name="id" value="<?php echo $comentario['id_comentario']; ?>">
-                                    <input type="hidden" name="accion" value="aprobar">
-                                    <button type="submit" class="btn-approve"> Aprobar</button>
-                                </form>
-                                <form action="<?php echo BASE_URL; ?>?ruta=admin_comentarios" method="POST" style="display:inline;">
-                                    <input type="hidden" name="id" value="<?php echo $comentario['id_comentario']; ?>">
-                                    <input type="hidden" name="accion" value="rechazar">
-                                    <button type="submit" class="btn-reject"> Rechazar</button>
-                                </form>
-                                <form action="<?php echo BASE_URL; ?>?ruta=admin_comentarios" method="POST" style="display:inline;">
-                                    <input type="hidden" name="id" value="<?php echo $comentario['id_comentario']; ?>">
+                                <?php if ($c['estado'] === 'pendiente'): ?>
+                                    <form method="POST" style="display:inline;">
+                                        <input type="hidden" name="id" value="<?php echo $c['id_comentario']; ?>">
+                                        <input type="hidden" name="accion" value="aprobar">
+                                        <button class="btn-approve">Aprobar</button>
+                                    </form>
+                                    <form method="POST" style="display:inline;">
+                                        <input type="hidden" name="id" value="<?php echo $c['id_comentario']; ?>">
+                                        <input type="hidden" name="accion" value="rechazar">
+                                        <button class="btn-reject">Rechazar</button>
+                                    </form>
+                                <?php endif; ?>
+                                <form method="POST" style="display:inline;">
+                                    <input type="hidden" name="id" value="<?php echo $c['id_comentario']; ?>">
                                     <input type="hidden" name="accion" value="eliminar">
-                                    <button type="submit" class="btn-delete" onclick="return confirm('¿Eliminar este comentario?')"> Eliminar</button>
+                                    <button class="btn-delete" 
+                                            onclick="return confirm('¿Eliminar este comentario?')">🗑</button>
                                 </form>
                             </td>
                         </tr>
